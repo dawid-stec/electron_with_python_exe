@@ -1,3 +1,7 @@
+// scripts/copy-electron-files.js
+// Kopiuje pliki Electron (main/preload) oraz Python exe do katalogu appdist/,
+// a renderer jest budowany przez Vite bezpośrednio do appdist/renderer (zgodnie z vite.config.js).
+
 const fs = require("fs");
 const path = require("path");
 
@@ -10,34 +14,63 @@ function copyFile(from, to) {
   fs.copyFileSync(from, to);
 }
 
-function copyDir(from, to) {
-  ensureDir(to);
-  for (const entry of fs.readdirSync(from, { withFileTypes: true })) {
-    const src = path.join(from, entry.name);
-    const dst = path.join(to, entry.name);
-    if (entry.isDirectory()) copyDir(src, dst);
-    else copyFile(src, dst);
+function exists(p) {
+  try {
+    fs.accessSync(p, fs.constants.F_OK);
+    return true;
+  } catch {
+    return false;
   }
 }
 
 (function main() {
-  // dist/main.js i dist/preload.js
-  ensureDir("dist");
-  copyFile("src/main.js", "dist/main.js");
-  copyFile("src/preload.js", "dist/preload.js");
+  const APPDIST = "appdist";
 
-  // Renderer już buduje Vite do dist/renderer, ale index.html jest tam.
-  // (Vite to robi). Nic nie kopiujemy dodatkowo.
+  // 1) Upewnij się, że appdist istnieje
+  ensureDir(APPDIST);
 
-  // Python exe: po pyinstaller jest w dist/mycli.exe
-  // kopiujemy do dist/python/mycli.exe (żeby electron-builder wziął extraResources)
-  ensureDir("dist/python");
-  const pyExe = path.join("dist", "mycli.exe");
-  if (!fs.existsSync(pyExe)) {
-    console.error("Brak dist/mycli.exe. Odpal najpierw: npm run build:python");
+  // 2) Kopiuj main/preload do appdist/
+  const mainSrc = path.join("src", "main.js");
+  const preloadSrc = path.join("src", "preload.js");
+
+  if (!exists(mainSrc)) {
+    console.error(`Brak pliku: ${mainSrc}`);
     process.exit(1);
   }
-  copyFile(pyExe, "dist/python/mycli.exe");
+  if (!exists(preloadSrc)) {
+    console.error(`Brak pliku: ${preloadSrc}`);
+    process.exit(1);
+  }
 
-  console.log("Copied electron files and python exe into dist/ ✅");
+  copyFile(mainSrc, path.join(APPDIST, "main.js"));
+  copyFile(preloadSrc, path.join(APPDIST, "preload.js"));
+
+  // 3) Skopiuj python exe z PyInstallera:
+  // PyInstaller domyślnie tworzy dist/mycli.exe
+  const pyExeName = "mycli.exe";
+  const pyExeSrc = path.join("dist", pyExeName); // output PyInstallera
+  const pyExeDst = path.join(APPDIST, "python", pyExeName);
+
+  if (!exists(pyExeSrc)) {
+    console.error(
+      `Brak ${pyExeSrc}. Najpierw zbuduj Pythona: npm run build:python (lub pyinstaller ...)`
+    );
+    process.exit(1);
+  }
+
+  copyFile(pyExeSrc, pyExeDst);
+
+  // 4) Renderer:
+  // Renderer powinien być już zbudowany przez Vite do appdist/renderer
+  // (czyli appdist/renderer/index.html ma istnieć)
+  const rendererIndex = path.join(APPDIST, "renderer", "index.html");
+  if (!exists(rendererIndex)) {
+    console.warn(
+      `UWAGA: Nie znaleziono ${rendererIndex}.\n` +
+        `Upewnij się, że vite.config.js ma build.outDir ustawione na appdist/renderer\n` +
+        `i że wykonałeś: npm run build:renderer`
+    );
+  }
+
+  console.log("✅ Copied Electron main/preload + Python exe into appdist/");
 })();
