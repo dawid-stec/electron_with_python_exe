@@ -1,0 +1,44 @@
+{
+  "name": "electron-react-python-demo",
+  "version": "1.0.0",
+  "main": "dist/main.js",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"electron .\"",
+    "build:renderer": "vite build",
+    "build:python": "pyinstaller --noconfirm --clean --onefile --name mycli python/mycli.py",
+    "build:electron": "node scripts/copy-electron-files.js && electron-builder -w",
+    "build": "npm run build:python && npm run build:renderer && npm run build:electron"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^9.0.1",
+    "electron": "^31.3.1",
+    "electron-builder": "^24.13.3",
+    "vite": "^5.4.8"
+  },
+  "build": {
+    "appId": "com.example.electronreactpython",
+    "productName": "ElectronReactPythonDemo",
+    "files": [
+      "dist/**"
+    ],
+    "asar": true,
+    "asarUnpack": [
+      "**/python/**"
+    ],
+    "extraResources": [
+      {
+        "from": "dist/python",
+        "to": "python"
+      }
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
