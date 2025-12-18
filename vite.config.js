@@ -3,11 +3,11 @@ import react from "@vitejs/plugin-react";
 import path from "node:path";
 
 export default defineConfig({
-    root: path.resolve(__dirname, "src/renderer"),
+  root: path.resolve(__dirname, "src/renderer"),
   plugins: [react()],
   base: "./",
   build: {
-    outDir: "dist/renderer",
-    emptyOutDir: true,
-  },
+    outDir: path.resolve(__dirname, "appdist/renderer"),
+    emptyOutDir: true
+  }
 });
