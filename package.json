@@ -6,9 +6,9 @@
   "scripts": {
     "dev": "concurrently -k \"vite\" \"electron .\"",
     "build:renderer": "vite build",
-    "build:python": "pyinstaller --noconfirm --clean --onefile --name mycli python/mycli.py",
-    "build:electron": "node scripts/copy-electron-files.js && electron-builder -w",
-    "build": "npm run build:python && npm run build:renderer && npm run build:electron"
+  "build:python": "pyinstaller --noconfirm --clean --onefile --name mycli python/mycli.py",
+  "build:electron": "node scripts/copy-electron-files.js && electron-builder -w",
+  "build": "npm run build:python && npm run build:renderer && npm run build:electron"
   },
   "dependencies": {
     "react": "^18.3.1",
