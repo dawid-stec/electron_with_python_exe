@@ -1,7 +1,7 @@
 {
   "name": "electron-react-python-demo",
   "version": "1.0.0",
-  "main": "dist/main.js",
+  "main": "appdist/main.js",
   "private": true,
   "scripts": {
     "dev": "concurrently -k \"vite\" \"electron .\"",
@@ -24,8 +24,11 @@
   "build": {
     "appId": "com.example.electronreactpython",
     "productName": "ElectronReactPythonDemo",
+    "directories": {
+      "output": "release"
+    },
     "files": [
-      "dist/**"
+      "appdist/**"
     ],
     "asar": true,
     "asarUnpack": [
@@ -33,7 +36,7 @@
     ],
     "extraResources": [
       {
-        "from": "dist/python",
+        "from": "appdist/python",
         "to": "python"
       }
     ],
